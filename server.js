@@ -50,12 +50,15 @@ app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.status(401).json('Invalid credentials');
     }
+
+    // Await the bcrypt.compare to ensure it resolves correctly
+    const isMatch = await bcrypt.compare(password, user.password);
     
-    if (user && bcrypt.compare(password, user.password)) {
+    if (isMatch) {
       const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
       res.json({ token });
     } else {
